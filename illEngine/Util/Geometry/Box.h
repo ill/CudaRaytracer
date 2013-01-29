@@ -77,10 +77,12 @@ struct Box {
     /**
     Returns which grid coordinates the coordinates of the box snap to given dimensions.
     */
+    /*
     template <typename R>
     inline Box<R> grid(const glm::detail::tvec3<T>& dimensions) const {
         return Box<R>(gridVec<T, R>(m_min, dimensions), gridVec<T, R>(m_max, dimensions));
     }
+    */
 
     /**
     Adds a point and expands the box.

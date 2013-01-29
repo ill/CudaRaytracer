@@ -6,12 +6,10 @@
 #include <glm/gtc/matrix_inverse.hpp>
 
 #include "Util/Geometry/Plane.h"
-#include "Util/Geometry/Box.h"
 #include "Util/Geometry/Frustum.h"
 #include "Util/Geometry/geomUtil.h"
+#include "Util/Geometry/Box.h"
 #include "Util/util.h"
-
-#include "Graphics/serial/Camera/CameraTransform.h"
 
 namespace illGraphics {  
 

@@ -1,11 +1,11 @@
 NVFLAGS=-g -arch=compute_20 -code=sm_20 -O3 -lrt
 # list .c and .cu source files here
-SRCFILES=main.cpp ./Video/Renderer/CudaRenderer.cu ./Video/Renderer/cudaKernels.cu ./Video/Renderer/SoftwareRenderer.cpp
+SRCFILES=main.cpp RayTracer/RayTracerCuda.cu RayTracer/cudaKernels.cu RayTracer/RayTracerCpu.cpp
 
 all:	Raytracer
 
-Rasterizer: $(SRCFILES) 
-	nvcc $(NVFLAGS) -o Raytracer $^ 
+Raytracer: $(SRCFILES) 
+	nvcc $(NVFLAGS) -o Raytracer $^ -Iglm-0.9.4.1 -IillEngine -I.
 
 clean: 
 	rm -rf *.o Raytracer
