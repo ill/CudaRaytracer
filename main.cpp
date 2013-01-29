@@ -4,12 +4,12 @@
 
 #include "illEngine/Graphics/serial/Camera/Camera.h"
 #include "illEngine/Util/Geometry/geomUtil.h"
-#include "RayTracer/RayTracer.h"
+#include "RayTracer/RayTracerCpu.h"
 
 //#define ENABLE_CUDA
 
 #ifdef ENABLE_CUDA
-//#include "Video/Renderer/CudaRenderer.h"
+#include "Video/Renderer/RayTracerCuda.h"
 #endif
 
 using namespace std;
@@ -20,7 +20,7 @@ int main(int argc, const char* argv[]) {
     std::string outputFile = "Output.tga";
     glm::mediump_float fieldOfView = 60;//illGraphics::DEFAULT_FOV;
 
-    RayTracer * rayTracer;
+    RayTracerBase * rayTracer;
 
     //parse some args
     for (int i = 1; i < argc; i++) {
@@ -34,21 +34,19 @@ int main(int argc, const char* argv[]) {
             outputFile = (argv[i] + 2);
         else if (strncmp(argv[i], "+Fov", 4) == 0)
             fieldOfView = (glm::mediump_float) atoi(argv[i] + 4);
-        /*else if (strncmp(argv[i], "+AntiAliasing", strlen("+AntiAliasing")) == 0)
-        antiAliasingMultiplier = atoi(argv[i] + strlen("+AntiAliasing"));*/
         else
             printf("Unknown option: %s\n", argv[i]);
     }
 
 #ifdef ENABLE_CUDA
     if(useCuda) {
-        //renderer = new Video::CudaRenderer(resolution);
+        rayTracer = new RayTracerCuda(resolution);
     }
     else {
-        //renderer = new Video::SoftwareRenderer(resolution);
+        rayTracer = new RayTracerCpu(resolution);
     }
 #else
-    rayTracer = new RayTracer(resolution);
+    rayTracer = new RayTracerCpu(resolution);
 #endif 
     
     illGraphics::Camera camera;
