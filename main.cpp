@@ -6,10 +6,10 @@
 #include "illEngine/Util/Geometry/geomUtil.h"
 #include "RayTracer/RayTracerCpu.h"
 
-//#define ENABLE_CUDA
+#define ENABLE_CUDA
 
 #ifdef ENABLE_CUDA
-#include "Video/Renderer/RayTracerCuda.h"
+#include "RayTracer/RayTracerCuda.h"
 #endif
 
 using namespace std;

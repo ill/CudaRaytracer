@@ -80,7 +80,7 @@ void RayTracerCuda::rayTraceScene(const illGraphics::Camera& camera) const {
    cudaMalloc((void **)&colorBufferD, m_resolution.x * m_resolution.y * sizeof(uint32_t));
 
    // Set up grid and block dimensions
-   dim3 dimGrid(m_resolution.x / 32, m_resolution.y / 32); // TODO: ceil of res.x/32 and ceil of res.y/32
+   dim3 dimGrid(ceil(m_resolution.x / 32), ceil(m_resolution.y / 32)); // TODO: ceil of res.x/32 and ceil of res.y/32
    dim3 dimBlock(BLOCK_WIDTH, BLOCK_HEIGHT);
 
    // Call kernel

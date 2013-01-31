@@ -8,4 +8,4 @@ Raytracer: $(SRCFILES)
 	nvcc $(NVFLAGS) -o Raytracer $^ -Iglm-0.9.4.1 -IillEngine -I.
 
 clean: 
-	rm -rf *.o Raytracer
+	rm -f *.o Raytracer
