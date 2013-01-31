@@ -4,6 +4,8 @@
 #include "RayTracerCuda.h"
 #include "util.h"
 
+
+
 RayTracerCuda::RayTracerCuda(const glm::uvec2& resolution) : RayTracerBase(resolution) {
 
     m_colorBuffer = new uint32_t[m_resolution.x * m_resolution.y];
@@ -72,7 +74,22 @@ const RayTracerCuda::SphereData* RayTracerCuda::sphereForRay(const glm::vec3& ra
 }
 
 void RayTracerCuda::rayTraceScene(const illGraphics::Camera& camera) const {
-   // Set up and call kernel
+   uint32_t* colorBufferD;
+
+   // Allocate device memory
+   cudaMalloc((void **)&colorBufferD, m_resolution.x * m_resolution.y * sizeof(uint32_t));
+
+   // Set up grid and block dimensions
+   dim3 dimGrid(m_resolution.x / 32, m_resolution.y / 32); // TODO: ceil of res.x/32 and ceil of res.y/32
+   dim3 dimBlock(BLOCK_WIDTH, BLOCK_HEIGHT);
+
+   // Call kernel
+   //RTkernel<<<dimGrid, dimBlock>>>();
+
+   // Retrieve results
+   cudaMemcpy(m_colorBuffer, colorBufferD, m_resolution.x * m_resolution.y * sizeof(uint32_t), cudaMemcpyDeviceToHost);
+
+   // Clean up, free data from global memory
 }
 
 void RayTracerCuda::output(const char * fileName) const {

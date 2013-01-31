@@ -4,6 +4,9 @@
 #include <vector>
 #include "RayTracerBase.h"
 
+#define BLOCK_WIDTH 32
+#define BLOCK_HEIGHT 32
+
 class RayTracerCuda : public RayTracerBase {
 public:
     RayTracerCuda(const glm::uvec2& resolution);
