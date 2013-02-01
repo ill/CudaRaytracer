@@ -3,9 +3,18 @@
 
 #include <vector>
 #include "RayTracerBase.h"
+#include "Util/Geometry/Frustum.h"
 
 #define BLOCK_WIDTH 32
 #define BLOCK_HEIGHT 32
+
+typedef struct Camera_t {
+   glm::mat4 m_transform;
+   //Frustum<> m_frustum;
+   glm::mat4 m_modelView;
+   glm::mat4 m_projection;
+   glm::mat4 m_canonical;
+} Camera_t;
 
 class RayTracerCuda : public RayTracerBase {
 public:
@@ -21,6 +30,7 @@ public:
 
     std::vector<SphereData> m_spheres;
     std::vector<SphereData> m_lights;
+
 };
 
 #endif

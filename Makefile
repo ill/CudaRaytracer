@@ -5,7 +5,7 @@ SRCFILES=main.cpp RayTracer/RayTracerCuda.cu RayTracer/cudaKernels.cu RayTracer/
 all:	Raytracer
 
 Raytracer: $(SRCFILES) 
-	nvcc $(NVFLAGS) -o Raytracer $^ -Iglm-0.9.4.1 -IillEngine -I.
+	nvcc $(NVFLAGS) -o Raytracer -Iglm-0.9.4.1 -IillEngine -I. $^
 
 clean: 
 	rm -f *.o Raytracer
