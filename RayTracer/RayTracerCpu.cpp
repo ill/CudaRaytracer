@@ -79,6 +79,8 @@ void RayTracerCpu::rayTraceScene(const illGraphics::Camera& camera) const {
             glm::vec3 b;
 
             camera.getPickSegment(glm::vec2(x, y), glm::ivec2(0, 0), glm::ivec2(m_resolution.x, m_resolution.y), a, b);
+            // a = glm::unProject(glm::vec3(glm::vec2(x, y), 0.0f), camera.getModelView(), camera.getProjection(), glm::ivec4(glm::ivec2(0, 0), glm::ivec2(m_resolution.x, m_resolution.y)));
+            // b = glm::unProject(glm::vec3(glm::vec2(x, y), 1.0f), camera.getModelView(), camera.getProjection(), glm::ivec4(glm::ivec2(0, 0), glm::ivec2(m_resolution.x, m_resolution.y)));
 
             //get the ray direction
             b = glm::normalize(b - a);

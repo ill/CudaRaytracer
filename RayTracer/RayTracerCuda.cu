@@ -75,16 +75,22 @@ const RayTracerCuda::SphereData* RayTracerCuda::sphereForRay(const glm::vec3& ra
 
 void RayTracerCuda::rayTraceScene(const illGraphics::Camera& camera) const {
    uint32_t* colorBufferD;
+   glm::vec3 a;
+   glm::vec3 b;
+
 
    // Allocate device memory
    cudaMalloc((void **)&colorBufferD, m_resolution.x * m_resolution.y * sizeof(uint32_t));
 
+   // Initialize things for kernel
+   // camera.getPickSegment(glm::vec2(x, y), glm::ivec2(0, 0), glm::ivec2(m_resolution.x, m_resolution.y), a, b); // TODO: This has to be done inside of kernel
+
    // Set up grid and block dimensions
-   dim3 dimGrid(ceil(m_resolution.x / 32), ceil(m_resolution.y / 32)); // TODO: ceil of res.x/32 and ceil of res.y/32
+   dim3 dimGrid(ceil(m_resolution.x / 32), ceil(m_resolution.y / 32));
    dim3 dimBlock(BLOCK_WIDTH, BLOCK_HEIGHT);
 
    // Call kernel
-   //RTkernel<<<dimGrid, dimBlock>>>();
+   //RTkernel<<<dimGrid, dimBlock>>>(a, b, colorBufferD);
 
    // Retrieve results
    cudaMemcpy(m_colorBuffer, colorBufferD, m_resolution.x * m_resolution.y * sizeof(uint32_t), cudaMemcpyDeviceToHost);
