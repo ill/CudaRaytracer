@@ -127,8 +127,8 @@ __global__ void RTkernel(Scene scene) {
    int x = blockIdx.x * blockDim.x + threadIdx.x;
    int y = blockIdx.y * blockDim.y + threadIdx.y;
 
-   if (x > scene.xRes || y > scene.yRes)
-      return;
+   //if (x > scene.xRes || y > scene.yRes)
+   //   return;
 
    glm::vec3 a;
    glm::vec3 b;
@@ -168,7 +168,7 @@ __global__ void RTkernel(Scene scene) {
             RayTracerBase::SphereData* shadowSphere = sphereRay(intersection, lightDir, shadowDistance2, scene, sphere);
             shadowDistance2 *= shadowDistance2;
  
-            if(shadowSphere && shadowDistance2 <= lightDistance2) {
+            if (shadowSphere && shadowDistance2 <= lightDistance2) {
                 continue;
             }
         }
@@ -199,4 +199,3 @@ __global__ void RTkernel(Scene scene) {
       scene.colorBuffer[x + scene.xRes * y] = 0;
    }
 }
-
