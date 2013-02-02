@@ -120,6 +120,9 @@ void RayTracerCuda::rayTraceScene(const illGraphics::Camera& camera) const {
    cudaMemcpy(m_colorBuffer, colorBufferD, m_resolution.x * m_resolution.y * sizeof(uint32_t), cudaMemcpyDeviceToHost);
 
    // Clean up, free data from global memory
+   cudaFree(colorBufferD);
+   cudaFree(spheresD);
+   cudaFree(lightsD);
 }
 
 void RayTracerCuda::output(const char * fileName) const {

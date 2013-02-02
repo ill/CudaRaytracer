@@ -127,6 +127,9 @@ __global__ void RTkernel(Scene scene) {
    int x = blockIdx.x * blockDim.x + threadIdx.x;
    int y = blockIdx.y * blockDim.y + threadIdx.y;
 
+   if (x > scene.xRes || y > scene.yRes)
+      return;
+
    glm::vec3 a;
    glm::vec3 b;
 
