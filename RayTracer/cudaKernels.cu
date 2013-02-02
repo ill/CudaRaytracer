@@ -1,5 +1,7 @@
 #include "illEngine/Graphics/serial/Camera/Camera.h"
 #include "cudaKernels.h"
+#include "util.h"
+
 #define T_VALUE glm::mediump_float
 
 __device__ void getPickSegmentDev(Camera_t camera, const glm::vec2& windowCoords, const glm::ivec2& viewportCorner, const glm::ivec2& viewportDimensions, glm::vec3& ptADestination, glm::vec3& ptBDestination) {
@@ -103,6 +105,23 @@ __device__ RayTracerBase::SphereData* sphereRay(const glm::vec3& rayOrigin, cons
    return closestSphere;
 }
 
+__device__ T_VALUE dist2(const glm::detail::tvec3<T_VALUE>& v1, const glm::detail::tvec3<T_VALUE>& v2) {
+    return (v1.x - v2.x) * (v1.x - v2.x) 
+        + (v1.y - v2.y) * (v1.y - v2.y)
+        + (v1.z - v2.z) * (v1.z - v2.z);
+}
+
+__device__ uint32_t vecToIntD(const glm::vec4& vec) {
+   uint32_t res = 0;
+
+   res |= (uint8_t)(vec.x * 255) << 24;
+   res |= (uint8_t)(vec.y * 255) << 16;
+   res |= (uint8_t)(vec.z * 255) << 8;
+   res |= (uint8_t)(vec.w * 255);
+   
+   return res;
+}
+
 // Kernel:
 __global__ void RTkernel(Scene scene) {
    int x = blockIdx.x * blockDim.x + threadIdx.x;
@@ -133,8 +152,48 @@ __global__ void RTkernel(Scene scene) {
          glm::vec3 lightDir = glm::normalize(light.m_sphere.m_center - intersection);
 
          //get distance squared to light
-         //glm::mediump_float lightDistance2 = distance2(intersection, light.m_sphere.m_center);
+         glm::mediump_float lightDistance2 = dist2(intersection, light.m_sphere.m_center);
+
+         //check if within light radius
+         if (lightDistance2 > light.m_sphere.m_radius * light.m_sphere.m_radius) {
+             continue;
+         }
+
+         //check if the light is in shadow
+         {
+            glm::mediump_float shadowDistance2;
+            RayTracerBase::SphereData* shadowSphere = sphereRay(intersection, lightDir, shadowDistance2, scene, sphere);
+            shadowDistance2 *= shadowDistance2;
+ 
+            if(shadowSphere && shadowDistance2 <= lightDistance2) {
+                continue;
+            }
+        }
+
+        //half vector
+        glm::vec3 halfVec = glm::normalize(lightDir + glm::normalize(b));
+
+        glm::mediump_float lightDistance = glm::sqrt(lightDistance2);
+
+        //light attenuation
+        glm::mediump_float attenuation = glm::clamp((light.m_sphere.m_radius - lightDistance) / light.m_sphere.m_radius, 0.0f, 1.0f);
+
+        //get normal of sphere at intersection
+        glm::vec3 normal = glm::normalize(intersection - sphere->m_sphere.m_center);
+
+        glm::mediump_float lambertFactor = glm::max(0.0f, glm::dot(lightDir, normal));
+
+        //now add the diffuse contribution
+        m_finalColor += attenuation * lambertFactor * light.m_color * sphere->m_color;
+
+        //now add the specular contribution (Meh, maybe later)
+        //m_finalColor += glm::max(glm::vec4(0.0f), glm::pow(glm::max(0.0f, glm::dot(halfVec, normal)), 5.0f) * sphere->m_color * light.m_color * glm::clamp(lambertFactor * 4.0f, 0.0f, 1.0f));
       }
+
+      scene.colorBuffer[x + scene.xRes * y] = vecToIntD(glm::clamp(m_finalColor, 0.0f, 1.0f));
+   }
+   else {
+      scene.colorBuffer[x + scene.xRes * y] = 0;
    }
 }
 
