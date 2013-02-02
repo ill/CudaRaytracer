@@ -1,9 +1,9 @@
 #include "illEngine/Graphics/serial/Camera/Camera.h"
 
 #include "outputTga.h"
-#include "cudaKernels.h"
 #include "RayTracerCuda.h"
 #include "util.h"
+#include "cudaKernels.h"
 
 
 
@@ -52,7 +52,8 @@ RayTracerCuda::~RayTracerCuda() {
    delete[] m_colorBuffer;
 }
 
-const RayTracerCuda::SphereData* RayTracerCuda::sphereForRay(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, glm::mediump_float& distance, const SphereData* omitSphere) const {
+
+/*__device__ RayTracerCuda::SphereData * RayTracerCuda::sphereForRay(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, glm::mediump_float& distance, const SphereData* omitSphere) {
     //find the closest sphere
     const SphereData * closestSphere = NULL;
 
@@ -72,16 +73,24 @@ const RayTracerCuda::SphereData* RayTracerCuda::sphereForRay(const glm::vec3& ra
     }
 
     return closestSphere;
-}
-
+}*/
 
 void RayTracerCuda::rayTraceScene(const illGraphics::Camera& camera) const {
    uint32_t* colorBufferD;
+   RayTracerBase::SphereData* spheresD;
+   RayTracerBase::SphereData* lightsD;
+   const RayTracerBase::SphereData* tmpSpheres = &m_spheres[0];
+   const RayTracerBase::SphereData* tmpLights = &m_lights[0];
    glm::vec3 a;
    glm::vec3 b;
+   Scene scene;
 
    // Allocate device memory
    cudaMalloc((void **)&colorBufferD, m_resolution.x * m_resolution.y * sizeof(uint32_t));
+   cudaMalloc((void **)&spheresD, m_spheres.size() * sizeof(SphereData));
+   cudaMalloc((void **)&lightsD, m_lights.size() * sizeof(SphereData));
+   cudaMemcpy(spheresD, tmpSpheres, m_spheres.size() * sizeof(SphereData), cudaMemcpyHostToDevice);
+   cudaMemcpy(lightsD, tmpLights, m_lights.size() * sizeof(SphereData), cudaMemcpyHostToDevice);
 
    // Initialize things for kernel
    Camera_t camera_t;
@@ -90,13 +99,22 @@ void RayTracerCuda::rayTraceScene(const illGraphics::Camera& camera) const {
    camera_t.m_modelView = camera.getModelView();
    camera_t.m_projection = camera.getProjection();
    camera_t.m_canonical = camera.getCanonical();
+   scene.camera = camera_t;
+   scene.colorBuffer = colorBufferD;
+   scene.xRes = m_resolution.x;
+   scene.yRes = m_resolution.y;
+   scene.spheres = spheresD;
+   scene.numSpheres = m_spheres.size();
+   scene.lights = lightsD;
+   scene.numLights = m_lights.size();
 
    // Set up grid and block dimensions
    dim3 dimGrid(ceil(m_resolution.x / 32), ceil(m_resolution.y / 32));
    dim3 dimBlock(BLOCK_WIDTH, BLOCK_HEIGHT);
 
    // Call kernel
-   RTkernel<<<dimGrid, dimBlock>>>(camera_t, colorBufferD, m_resolution.x, m_resolution.y);
+   //RTkernel<<<dimGrid, dimBlock>>>(camera_t, colorBufferD, m_resolution.x, m_resolution.y, spheresD, lightsD);
+   RTkernel<<<dimGrid, dimBlock>>>(scene);
 
    // Retrieve results
    cudaMemcpy(m_colorBuffer, colorBufferD, m_resolution.x * m_resolution.y * sizeof(uint32_t), cudaMemcpyDeviceToHost);

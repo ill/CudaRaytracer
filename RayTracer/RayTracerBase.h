@@ -3,15 +3,18 @@
 
 #include "Util/Geometry/Sphere.h"
 
+
+
 namespace illGraphics {
     class Camera;
 }
 
 class RayTracerBase {
 public:
+
     struct SphereData {
-        glm::vec4 m_color;
-        Sphere<> m_sphere;
+      glm::vec4 m_color;
+      Sphere<> m_sphere;
     };
 
     RayTracerBase(glm::uvec2 resolution)

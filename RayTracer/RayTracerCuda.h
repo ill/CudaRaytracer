@@ -3,10 +3,10 @@
 
 #include <vector>
 #include "RayTracerBase.h"
-#include "Util/Geometry/Frustum.h"
 
 #define BLOCK_WIDTH 32
 #define BLOCK_HEIGHT 32
+
 
 typedef struct Camera_t {
    glm::mat4 m_transform;
@@ -15,6 +15,17 @@ typedef struct Camera_t {
    glm::mat4 m_projection;
    glm::mat4 m_canonical;
 } Camera_t;
+
+typedef struct Scene {
+   Camera_t camera;
+   uint32_t* colorBuffer;
+   int xRes;
+   int yRes;
+   RayTracerBase::SphereData* spheres;
+   int numSpheres;
+   RayTracerBase::SphereData* lights;
+   int numLights;
+} Scene;
 
 class RayTracerCuda : public RayTracerBase {
 public:
@@ -26,7 +37,7 @@ public:
 
     void output(const char * fileName) const;
 
-    const SphereData* sphereForRay(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, glm::mediump_float& distance, const SphereData* omitSphere = NULL) const;
+    //RayTracerCuda::SphereData* sphereForRay(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, glm::mediump_float& distance, const RayTracerBase::SphereData* omitSphere = NULL);
 
     std::vector<SphereData> m_spheres;
     std::vector<SphereData> m_lights;
