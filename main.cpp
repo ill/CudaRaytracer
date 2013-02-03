@@ -17,7 +17,7 @@ using namespace std;
 
 int main(int argc, const char* argv[]) {
     bool useCuda = true;
-    glm::uvec2 resolution (30u, 30u);
+    glm::uvec2 resolution (1000u, 1000u);
     std::string outputFile = "Output.tga";
     glm::mediump_float fieldOfView = 60;//illGraphics::DEFAULT_FOV;
 
