@@ -1,5 +1,6 @@
 #include <glm/glm.hpp>
 #include <cstring>
+#include <cstdio>
 #include <iostream>
 
 #include "illEngine/Graphics/serial/Camera/Camera.h"
@@ -16,7 +17,7 @@ using namespace std;
 
 int main(int argc, const char* argv[]) {
     bool useCuda = true;
-    glm::uvec2 resolution (1920u, 1080u);
+    glm::uvec2 resolution (30u, 30u);
     std::string outputFile = "Output.tga";
     glm::mediump_float fieldOfView = 60;//illGraphics::DEFAULT_FOV;
 
@@ -51,7 +52,8 @@ int main(int argc, const char* argv[]) {
     
     illGraphics::Camera camera;
     camera.setPerspectiveTransform(
-        createTransform(glm::vec3(-50.0f, 0.0f, 0.0f), directionToMat3(glm::normalize(glm::vec3(2.0f, 1.0f, 1.0f)))),
+		createTransform(glm::vec3(-50.0f, -50.0f, -50.0f), directionToMat3(glm::normalize(glm::vec3(1.0f, 1.0f, 1.0f)))),
+        //createTransform(glm::vec3(-50.0f, 0.0f, 0.0f), directionToMat3(glm::normalize(glm::vec3(2.0f, 1.0f, 1.0f)))),
         //createTransform(glm::vec3(-30.0f, 50.0f, 50.0f), directionToMat3(glm::normalize(glm::vec3(1.0f, 0.0f, 0.0f)))),
         (float) resolution.x / (float) resolution.y, fieldOfView);
 
@@ -60,5 +62,7 @@ int main(int argc, const char* argv[]) {
 
     delete rayTracer;
 
+	fflush(stdout);
+	
     return 0;
 }

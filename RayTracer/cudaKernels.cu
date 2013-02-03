@@ -2,6 +2,8 @@
 #include "cudaKernels.h"
 #include "util.h"
 
+//#include <stdio.h>
+
 #define T_VALUE glm::mediump_float
 
 __device__ void getPickSegmentDev(Camera_t camera, const glm::vec2& windowCoords, const glm::ivec2& viewportCorner, const glm::ivec2& viewportDimensions, glm::vec3& ptADestination, glm::vec3& ptBDestination) {
@@ -39,7 +41,7 @@ __device__ bool rayIntersection(glm::detail::tvec3<T_VALUE> rayOrigin, const glm
         if (disc < 0) {
             return false;
         }
-
+		
         // compute q as described above
         T_VALUE distSqrt = glm::sqrt(disc);
         T_VALUE q;
@@ -50,6 +52,8 @@ __device__ bool rayIntersection(glm::detail::tvec3<T_VALUE> rayOrigin, const glm
             q = (-b + distSqrt) / (T_VALUE)2;
         }
 
+		//--
+		
         // compute t0 and t1
         T_VALUE t0 = q / a;
         T_VALUE t1 = c / q;
@@ -61,7 +65,7 @@ __device__ bool rayIntersection(glm::detail::tvec3<T_VALUE> rayOrigin, const glm
             t0 = t1;
             t1 = temp;
         }
-
+		
         // if t1 is less than zero, the object is in the ray's negative direction
         // and consequently the ray misses the sphere
         if (t1 < (T_VALUE) 0) {
@@ -77,7 +81,7 @@ __device__ bool rayIntersection(glm::detail::tvec3<T_VALUE> rayOrigin, const glm
         else
         {
             distance = t0;
-            return true;
+			return true;
         }
 }
 
@@ -85,17 +89,19 @@ __device__ RayTracerBase::SphereData* sphereRay(const glm::vec3& rayOrigin, cons
       Scene scene, const RayTracerBase::SphereData* omitSphere = NULL) {
    //find the closest sphere
    RayTracerBase::SphereData* closestSphere = NULL;
-
+      	        
    int i = 0;
    for (i = 0; i < scene.numSpheres; i++) {
+	  //printf("Sphere Intersection %d Num Spheres %d\n", i, scene.numSpheres);
+   
       RayTracerBase::SphereData& sphere = scene.spheres[i];
 
       glm::mediump_float thisDistance;
-
+	  
       //do a ray sphere intersection
-      if(rayIntersection(rayOrigin, rayDirection, thisDistance, sphere.m_sphere.m_center, sphere.m_sphere.m_radius)) {
-         //if this is the closest sphere so far, choose this bill
-         if(&sphere != omitSphere &&(closestSphere == NULL || thisDistance < distance)) {
+      if(&sphere != omitSphere && rayIntersection(rayOrigin, rayDirection, thisDistance, sphere.m_sphere.m_center, sphere.m_sphere.m_radius)) {		 
+		 //if this is the closest sphere so far, choose this bill
+         if(closestSphere == NULL || thisDistance < distance) {
              distance = thisDistance;
              closestSphere = &sphere;
          }
@@ -127,22 +133,33 @@ __global__ void RTkernel(Scene scene) {
    int x = blockIdx.x * blockDim.x + threadIdx.x;
    int y = blockIdx.y * blockDim.y + threadIdx.y;
 
-   //if (x > scene.xRes || y > scene.yRes)
-   //   return;
+   //printf("(%d, %d)", x, y);
+      
+   if (x > scene.xRes || y > scene.yRes)
+      return;
+	  
+   //scene.colorBuffer[x + scene.xRes * y] = vecToIntD(glm::vec4((float) x / scene.xRes, 0.0f, (float) y / scene.yRes, 1.0f));
 
+   //for(x = 0; x < scene.xRes; x++) {
+	  //for(y = 0; y < scene.yRes; y++) {
+   
+   //scene.colorBuffer[x + scene.xRes * y] = vecToIntD(glm::vec4((float) x / scene.xRes, 0.0f, (float) y / scene.yRes, 1.0f));
+      
    glm::vec3 a;
    glm::vec3 b;
-
+   
    // Get the ray direction
    getPickSegmentDev(scene.camera, glm::vec2(x, y), glm::ivec2(0, 0), glm::ivec2(scene.xRes, scene.yRes), a, b);
    b = glm::normalize(b - a);
+   
+   //printf("Sphere Intersection Ray (%f, %f, %f) (%f, %f, %f)\n", a.x, a.y, a.z, b.x, b.y, b.z);
    
    glm::mediump_float distance;
    RayTracerBase::SphereData* sphere = sphereRay(a, b, distance, scene);
 
    // found a sphere
-   if (sphere) {
-      glm::vec4 m_finalColor = sphere->m_color * 0.1f;    //even if in shadow, give a bit of ambient lighting
+   if (sphere) {	  
+	  glm::vec4 m_finalColor = sphere->m_color * 0.1f;    //even if in shadow, give a bit of ambient lighting
 
       // get intersection position
       glm::vec3 intersection = a + b * distance;
@@ -198,4 +215,6 @@ __global__ void RTkernel(Scene scene) {
    else {
       scene.colorBuffer[x + scene.xRes * y] = 0;
    }
+   
+   //}}
 }

@@ -1,3 +1,4 @@
+#include <glm/gtc/random.hpp>
 #include "illEngine/Graphics/serial/Camera/Camera.h"
 
 #include "outputTga.h"
@@ -8,42 +9,22 @@ RayTracerCpu::RayTracerCpu(const glm::uvec2& resolution)
     : RayTracerBase(resolution)
 {
     m_colorBuffer = new uint32_t[m_resolution.x * m_resolution.y];
-
+	
     //create all the spheres
-    for(unsigned int x = 0; x < 10; x++) {
-        for(unsigned int y = 0; y < 10; y++) {
-            for(unsigned int z = 0; z < 10; z++) {
-                m_spheres.push_back(SphereData());
+	for(unsigned int sphere = 0; sphere < 100; sphere++) {
+		m_spheres.push_back(SphereData());
 
-                m_spheres.back().m_color = glm::vec4(0.1f + (float) x / 10.0f, 0.1f + (float) y / 10.0f, 0.1f + (float) z / 10.0f, 1.0f);
-                m_spheres.back().m_sphere.m_radius = 3.0f;
-                m_spheres.back().m_sphere.m_center = glm::vec3(10.0f * x, 10.0f * y, 10.0f *z);
-            }
-        }
-    }
-
+		m_spheres.back().m_color = glm::linearRand(glm::vec4(0.2f), glm::vec4(1.0f));
+		m_spheres.back().m_sphere.m_radius = glm::linearRand(2.0f, 10.0f);
+		m_spheres.back().m_sphere.m_center = glm::linearRand(glm::vec3(0.0f), glm::vec3(200.0f));
+	}
+	
     //create the lights
+	m_lights.push_back(SphereData());
 
-    //a light white light
-    m_lights.push_back(SphereData());
-
-    m_lights.back().m_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-    m_lights.back().m_sphere.m_radius = 100.0f;
-    m_lights.back().m_sphere.m_center = glm::vec3(-30.0f, 50.0f, 50.0f);
-
-    //a red light
-    m_lights.push_back(SphereData());
-
-    m_lights.back().m_color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
-    m_lights.back().m_sphere.m_radius = 30.0f;
-    m_lights.back().m_sphere.m_center = glm::vec3(50.0f, 50.0f, -10.0f);
-
-    //a blue light
-    m_lights.push_back(SphereData());
-
-    m_lights.back().m_color = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
-    m_lights.back().m_sphere.m_radius = 30.0f;
-    m_lights.back().m_sphere.m_center = glm::vec3(50.0f, -10.0f, 50.0f);
+	m_lights.back().m_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	m_lights.back().m_sphere.m_radius = 300.0f;
+	m_lights.back().m_sphere.m_center = glm::vec3(-30.0f, 50.0f, 50.0f);
 }
 
 RayTracerCpu::~RayTracerCpu() {

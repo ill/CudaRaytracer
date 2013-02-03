@@ -4,8 +4,8 @@
 #include <vector>
 #include "RayTracerBase.h"
 
-#define BLOCK_WIDTH 32
-#define BLOCK_HEIGHT 32
+#define BLOCK_WIDTH 10
+#define BLOCK_HEIGHT 10
 
 
 typedef struct Camera_t {
