@@ -2,8 +2,6 @@
 #include "cudaKernels.h"
 #include "util.h"
 
-//#include <stdio.h>
-
 #define T_VALUE glm::mediump_float
 
 __device__ void getPickSegmentDev(Camera_t camera, const glm::vec2& windowCoords, const glm::ivec2& viewportCorner, const glm::ivec2& viewportDimensions, glm::vec3& ptADestination, glm::vec3& ptBDestination) {
@@ -94,7 +92,7 @@ __device__ RayTracerBase::SphereData* sphereRay(const glm::vec3& rayOrigin, cons
    for (i = 0; i < scene.numSpheres; i++) {
 	  //printf("Sphere Intersection %d Num Spheres %d\n", i, scene.numSpheres);
    
-      RayTracerBase::SphereData& sphere = scene.spheres[i];
+      RayTracerBase::SphereData& sphere = scene.sharedSpheres[i];
 
       glm::mediump_float thisDistance;
 	  
@@ -133,26 +131,20 @@ __global__ void RTkernel(Scene scene) {
    int x = blockIdx.x * blockDim.x + threadIdx.x;
    int y = blockIdx.y * blockDim.y + threadIdx.y;
 
-   //printf("(%d, %d)", x, y);
-      
    if (x > scene.xRes || y > scene.yRes)
       return;
-	  
-   //scene.colorBuffer[x + scene.xRes * y] = vecToIntD(glm::vec4((float) x / scene.xRes, 0.0f, (float) y / scene.yRes, 1.0f));
 
-   //for(x = 0; x < scene.xRes; x++) {
-	  //for(y = 0; y < scene.yRes; y++) {
-   
-   //scene.colorBuffer[x + scene.xRes * y] = vecToIntD(glm::vec4((float) x / scene.xRes, 0.0f, (float) y / scene.yRes, 1.0f));
-      
+   // Copy spheres into shared memory
+   if (threadIdx.x + blockDim.x * threadIdx.y < scene.numSpheres)
+      scene.sharedSpheres[threadIdx.x + blockDim.x * threadIdx.y] = scene.spheres[threadIdx.x + blockDim.x * threadIdx.y];
+
+   __syncthreads();
    glm::vec3 a;
    glm::vec3 b;
    
    // Get the ray direction
    getPickSegmentDev(scene.camera, glm::vec2(x, y), glm::ivec2(0, 0), glm::ivec2(scene.xRes, scene.yRes), a, b);
    b = glm::normalize(b - a);
-   
-   //printf("Sphere Intersection Ray (%f, %f, %f) (%f, %f, %f)\n", a.x, a.y, a.z, b.x, b.y, b.z);
    
    glm::mediump_float distance;
    RayTracerBase::SphereData* sphere = sphereRay(a, b, distance, scene);
@@ -216,5 +208,4 @@ __global__ void RTkernel(Scene scene) {
       scene.colorBuffer[x + scene.xRes * y] = 0;
    }
    
-   //}}
 }

@@ -22,6 +22,7 @@ typedef struct Scene {
    int xRes;
    int yRes;
    RayTracerBase::SphereData* spheres;
+   RayTracerBase::SphereData* sharedSpheres;
    int numSpheres;
    RayTracerBase::SphereData* lights;
    int numLights;

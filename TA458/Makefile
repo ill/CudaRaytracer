@@ -1,8 +1,8 @@
 CC=nvcc
 LD=nvcc
-CFLAGS= -O3 -c -lGL -lGLEW -lglut 
-LDFLAGS= -O3  -lGL -lGLEW  -lglut 
-CUDAFLAGS= -O3 -c -arch=sm_21
+CFLAGS= -O3 -c -lGL -lGLEW -lglut -Iglew-1.9.0/include
+LDFLAGS= -O3  -lGL -lGLEW  -lglut -Iglew-1.9.0/include
+CUDAFLAGS= -O3 -c -arch=sm_21 -Iglew-1.9.0/include
 
 ALL= callbacksPBO.o kernelPBO.o simpleGLmain.o simplePBO.o
 

@@ -35,32 +35,10 @@ RayTracerCuda::~RayTracerCuda() {
    delete[] m_colorBuffer;
 }
 
-
-/*__device__ RayTracerCuda::SphereData * RayTracerCuda::sphereForRay(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, glm::mediump_float& distance, const SphereData* omitSphere) {
-    //find the closest sphere
-    const SphereData * closestSphere = NULL;
-
-    for (std::vector<SphereData>::const_iterator iter = m_spheres.begin(); iter != m_spheres.end(); iter++) {
-        const SphereData& sphere = *iter;
-
-        glm::mediump_float thisDistance;
-
-        //do a ray sphere intersection
-        if(sphere.m_sphere.rayIntersection(rayOrigin, rayDirection, thisDistance)) {
-            //if this is the closest sphere so far, choose this bill
-            if(&sphere != omitSphere &&(closestSphere == NULL || thisDistance < distance)) {
-                distance = thisDistance;
-                closestSphere = &sphere;
-            }
-        }
-    }
-
-    return closestSphere;
-}*/
-
 void RayTracerCuda::rayTraceScene(const illGraphics::Camera& camera) const {
    uint32_t* colorBufferD;
    RayTracerBase::SphereData* spheresD;
+   RayTracerBase::SphereData* sharedSpheresD;
    RayTracerBase::SphereData* lightsD;
    const RayTracerBase::SphereData* tmpSpheres = &m_spheres[0];
    const RayTracerBase::SphereData* tmpLights = &m_lights[0];
@@ -71,6 +49,7 @@ void RayTracerCuda::rayTraceScene(const illGraphics::Camera& camera) const {
    // Allocate device memory
    cudaMalloc((void **)&colorBufferD, m_resolution.x * m_resolution.y * sizeof(uint32_t));
    cudaMalloc((void **)&spheresD, m_spheres.size() * sizeof(SphereData));
+   cudaMalloc((void **)&sharedSpheresD, m_spheres.size() * sizeof(SphereData));
    cudaMalloc((void **)&lightsD, m_lights.size() * sizeof(SphereData));
    cudaMemcpy(spheresD, tmpSpheres, m_spheres.size() * sizeof(SphereData), cudaMemcpyHostToDevice);
    cudaMemcpy(lightsD, tmpLights, m_lights.size() * sizeof(SphereData), cudaMemcpyHostToDevice);
@@ -78,7 +57,6 @@ void RayTracerCuda::rayTraceScene(const illGraphics::Camera& camera) const {
    // Initialize things for kernel
    Camera_t camera_t;
    camera_t.m_transform = camera.getTransform();
-   //camera_t.m_frustum = camera.getViewFrustum();
    camera_t.m_modelView = camera.getModelView();
    camera_t.m_projection = camera.getProjection();
    camera_t.m_canonical = camera.getCanonical();
@@ -87,6 +65,7 @@ void RayTracerCuda::rayTraceScene(const illGraphics::Camera& camera) const {
    scene.xRes = m_resolution.x;
    scene.yRes = m_resolution.y;
    scene.spheres = spheresD;
+   scene.sharedSpheres = sharedSpheresD;
    scene.numSpheres = m_spheres.size();
    scene.lights = lightsD;
    scene.numLights = m_lights.size();
@@ -95,11 +74,7 @@ void RayTracerCuda::rayTraceScene(const illGraphics::Camera& camera) const {
    dim3 dimGrid(ceil((float) m_resolution.x / BLOCK_WIDTH), ceil((float) m_resolution.y / BLOCK_HEIGHT));
    dim3 dimBlock(BLOCK_WIDTH, BLOCK_HEIGHT);
 
-   //dim3 dimGrid(10, 10);
-   //dim3 dimBlock(10, 10);
-   
    // Call kernel
-   //RTkernel<<<dimGrid, dimBlock>>>(camera_t, colorBufferD, m_resolution.x, m_resolution.y, spheresD, lightsD);
    RTkernel<<<dimGrid, dimBlock>>>(scene);
    
    // make the host block until the device is finished with foo
@@ -118,6 +93,7 @@ void RayTracerCuda::rayTraceScene(const illGraphics::Camera& camera) const {
    // Clean up, free data from global memory
    cudaFree(colorBufferD);
    cudaFree(spheresD);
+   cudaFree(sharedSpheresD);
    cudaFree(lightsD);
 }
 
