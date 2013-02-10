@@ -209,3 +209,13 @@ __global__ void RTkernel(Scene scene) {
    }
    
 }
+
+
+// Kernel which will move the spheres
+/*__global__ void STkernel(Scene scene) {
+   int x = threadIdx.x + blockIdx.x * blockDim.x;
+
+   if (x < scene.numSpheres) {
+      scene.spheres[x].m_sphere.m_center.x += 8.0;
+   }
+}*/

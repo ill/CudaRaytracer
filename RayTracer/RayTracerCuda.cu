@@ -45,6 +45,8 @@ void RayTracerCuda::rayTraceScene(const illGraphics::Camera& camera) const {
    glm::vec3 a;
    glm::vec3 b;
    Scene scene;
+   struct timeval time1;
+   struct timeval time2;
 
    // Allocate device memory
    cudaMalloc((void **)&colorBufferD, m_resolution.x * m_resolution.y * sizeof(uint32_t));
@@ -70,7 +72,14 @@ void RayTracerCuda::rayTraceScene(const illGraphics::Camera& camera) const {
    scene.lights = lightsD;
    scene.numLights = m_lights.size();
 
-   // Set up grid and block dimensions
+   /*// Set up grid and block dimensions for the sphere translation
+   dim3 dimTransGrid(ceil((float) scene.numSpheres / BLOCK_WIDTH));
+   dim3 dimTransBlock(BLOCK_WIDTH);
+
+   // Call kernel
+   STkernel<<<dimTransGrid, dimTransBlock>>>(scene);*/
+
+   // Set up grid and block dimensions for the raytracing
    dim3 dimGrid(ceil((float) m_resolution.x / BLOCK_WIDTH), ceil((float) m_resolution.y / BLOCK_HEIGHT));
    dim3 dimBlock(BLOCK_WIDTH, BLOCK_HEIGHT);
 
