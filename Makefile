@@ -1,11 +1,28 @@
-NVFLAGS=-g -arch=compute_20 -code=sm_20 -O3 -lrt
-# list .c and .cu source files here
-SRCFILES=main.cpp RayTracer/RayTracerCuda.cu RayTracer/cudaKernels.cu RayTracer/RayTracerCpu.cpp
+CC=nvcc
+LD=nvcc
+CFLAGS= -O3 -c -lGL -lglut -DGL_GLEXT_PROTOTYPES -lGLU 
+LDFLAGS= -O3  -lGL -lglut -DGL_GLEXT_PROTOTYPES -lGLU  
+CUDAFLAGS= -O3 -c -arch=sm_21
 
-all:	Raytracer
+ALL= callbacksPBO.o kernelPBO.o simpleGLmain.o simplePBO.o
 
-Raytracer: $(SRCFILES) 
-	nvcc $(NVFLAGS) -o Raytracer -Iglm-0.9.4.1 -IillEngine -I. $^
+all= $(ALL) RTRT
 
-clean: 
-	rm -f *.o Raytracer
+RT:	$(ALL)
+	$(CC) $(LDFLAGS) $(ALL) -o RTRT
+
+callbacksPBO.o:	callbacksPBO.cpp
+	$(CC) $(CFLAGS) -o $@ $<
+
+kernelPBO.o:	kernelPBO.cu
+	$(CC) $(CUDAFLAGS) -o $@ $<
+
+simpleGLmain.o:	simpleGLmain.cpp
+	$(CC) $(CFLAGS) -o $@ $<
+
+simplePBO.o: simplePBO.cpp
+	$(CC) $(CFLAGS) -o $@ $<
+
+clean:
+	rm -rf core* *.o *.gch $(ALL) junk*
+
