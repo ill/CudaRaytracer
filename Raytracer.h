@@ -18,8 +18,6 @@ typedef struct Camera_t {
 } Camera_t;
 
 typedef struct Scene {
-   int xRes;
-   int yRes;
    SphereData* spheres;
    SphereData* sharedSpheres;
    int numSpheres;

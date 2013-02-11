@@ -1,6 +1,8 @@
 // simplePBO.cpp (Rob Farber)
     
 // includes
+#include <glm/glm.hpp>
+#include <glm/gtc/random.hpp>
 #include <GL/glut.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -9,6 +11,11 @@
 #include <cuda.h>
 #include <cuda_runtime_api.h>
 #include <cuda_gl_interop.h>
+
+#include "illEngine/Graphics/serial/Camera/Camera.h"
+#include "illEngine/Util/Geometry/geomUtil.h"
+
+#include "Raytracer.h"
  
 // external variables
 extern float animTime;
@@ -19,11 +26,21 @@ extern unsigned int window_height;
 unsigned int image_width = window_width;
 unsigned int image_height = window_height;
  
-extern "C" void launch_kernel(void* pos, unsigned int, unsigned int, float);
+extern "C" void launch_kernel(uint32_t* buffer, Scene scene, Camera_t camera, int image_width, int image_height);
+
+extern "C" void setSceneDeviceData(Scene * scene, 
+   const SphereData* spheres, size_t numSpheres, 
+   const SphereData* lights, size_t numLights);
  
 // variables
 GLuint pbo=0;
 GLuint textureID=0;
+
+Scene scene;
+Camera_t camera;
+
+#define NUM_SPHERES 100
+#define NUM_LIGHTS 1
  
 void createPBO(GLuint* pbo)
 {
@@ -99,7 +116,7 @@ void cleanupCuda()
 // Run the Cuda part of the computation
 void runCuda()
 {
-  uchar4 *dptr=NULL;
+  uint32_t *dptr=NULL;
  
   // map OpenGL buffer object for writing from CUDA on a single GPU
   // no data is moved (Win & Linux). When mapped to CUDA, OpenGL
@@ -107,11 +124,50 @@ void runCuda()
   cudaGLMapBufferObject((void**)&dptr, pbo);
  
   // execute the kernel
-  launch_kernel(dptr, image_width, image_height, animTime);
+  launch_kernel(dptr, scene, camera, image_width, image_height);
  
   // unmap buffer object
   cudaGLUnmapBufferObject(pbo);
 }
+ 
+void initScene()
+{
+   //create all the spheres
+   SphereData spheres[NUM_SPHERES];
+   
+	for(unsigned int sphere = 0; sphere < NUM_SPHERES; sphere++) {		
+		spheres[sphere].m_color = glm::linearRand(glm::vec4(0.2f), glm::vec4(1.0f));
+		spheres[sphere].m_radius = glm::linearRand(2.0f, 10.0f);
+		spheres[sphere].m_center = glm::linearRand(glm::vec3(0.0f), glm::vec3(200.0f));
+	}
+	
+   //create the lights
+   SphereData lights[NUM_LIGHTS];
+   
+	lights[0].m_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	lights[0].m_radius = 300.0f;
+	lights[0].m_center = glm::vec3(-30.0f, 50.0f, 50.0f);
+   
+   // Initialize things for kernel
+   scene.numSpheres = NUM_SPHERES;
+   scene.numLights = NUM_LIGHTS;
+   
+   setSceneDeviceData(&scene, spheres, NUM_SPHERES, lights, NUM_LIGHTS);
+   
+   //camera
+   illGraphics::Camera illCamera;
+   illCamera.setPerspectiveTransform(
+		createTransform(glm::vec3(-50.0f, -50.0f, -50.0f), directionToMat3(glm::normalize(glm::vec3(1.0f, 1.0f, 1.0f)))),
+        //createTransform(glm::vec3(-50.0f, 0.0f, 0.0f), directionToMat3(glm::normalize(glm::vec3(2.0f, 1.0f, 1.0f)))),
+        //createTransform(glm::vec3(-30.0f, 50.0f, 50.0f), directionToMat3(glm::normalize(glm::vec3(1.0f, 0.0f, 0.0f)))),
+        (float) image_width / (float) image_height, 60.0f);
+        
+   camera.m_transform = illCamera.getTransform();
+   camera.m_modelView = illCamera.getModelView();
+   camera.m_projection = illCamera.getProjection();
+   camera.m_canonical = illCamera.getCanonical();
+}
+ 
  
 void initCuda()
 {
@@ -133,6 +189,8 @@ void initCuda()
  
   // Clean up on program exit
   atexit(cleanupCuda);
+ 
+  initScene();
  
   runCuda();
 }

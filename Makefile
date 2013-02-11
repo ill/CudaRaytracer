@@ -1,8 +1,8 @@
 CC=nvcc
 LD=nvcc
-CFLAGS= -O3 -c -lGL -lglut -DGL_GLEXT_PROTOTYPES -lGLU 
-LDFLAGS= -O3  -lGL -lglut -DGL_GLEXT_PROTOTYPES -lGLU  
-CUDAFLAGS= -O3 -c -arch=sm_21
+CFLAGS= -O3 -c -lGL -lglut -DGL_GLEXT_PROTOTYPES -lGLU -Iglm-0.9.4.1 -IillEngine -I.
+LDFLAGS= -O3  -lGL -lglut -DGL_GLEXT_PROTOTYPES -lGLU -Iglm-0.9.4.1 -IillEngine -I. 
+CUDAFLAGS= -O3 -c -arch=sm_21 -Iglm-0.9.4.1 -IillEngine -I.
 
 ALL= callbacksPBO.o kernelPBO.o simpleGLmain.o simplePBO.o
 
