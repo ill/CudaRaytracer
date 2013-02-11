@@ -13,7 +13,6 @@
 #include <cuda_gl_interop.h>
 
 #include "illEngine/Graphics/serial/Camera/Camera.h"
-#include "illEngine/Util/Geometry/geomUtil.h"
 
 #include "Raytracer.h"
  
@@ -37,6 +36,8 @@ GLuint pbo=0;
 GLuint textureID=0;
 
 Scene scene;
+
+extern illGraphics::Camera illCamera;
 Camera_t camera;
 
 #define NUM_SPHERES 100
@@ -116,6 +117,13 @@ void cleanupCuda()
 // Run the Cuda part of the computation
 void runCuda()
 {
+   //camera
+   camera.m_transform = illCamera.getTransform();
+   camera.m_modelView = illCamera.getModelView();
+   camera.m_projection = illCamera.getProjection();
+   camera.m_canonical = illCamera.getCanonical();
+
+
   uint32_t *dptr=NULL;
  
   // map OpenGL buffer object for writing from CUDA on a single GPU
@@ -152,20 +160,7 @@ void initScene()
    scene.numSpheres = NUM_SPHERES;
    scene.numLights = NUM_LIGHTS;
    
-   setSceneDeviceData(&scene, spheres, NUM_SPHERES, lights, NUM_LIGHTS);
-   
-   //camera
-   illGraphics::Camera illCamera;
-   illCamera.setPerspectiveTransform(
-		createTransform(glm::vec3(-50.0f, -50.0f, -50.0f), directionToMat3(glm::normalize(glm::vec3(1.0f, 1.0f, 1.0f)))),
-        //createTransform(glm::vec3(-50.0f, 0.0f, 0.0f), directionToMat3(glm::normalize(glm::vec3(2.0f, 1.0f, 1.0f)))),
-        //createTransform(glm::vec3(-30.0f, 50.0f, 50.0f), directionToMat3(glm::normalize(glm::vec3(1.0f, 0.0f, 0.0f)))),
-        (float) image_width / (float) image_height, 60.0f);
-        
-   camera.m_transform = illCamera.getTransform();
-   camera.m_modelView = illCamera.getModelView();
-   camera.m_projection = illCamera.getProjection();
-   camera.m_canonical = illCamera.getCanonical();
+   setSceneDeviceData(&scene, spheres, NUM_SPHERES, lights, NUM_LIGHTS);   
 }
  
  
@@ -191,6 +186,6 @@ void initCuda()
   atexit(cleanupCuda);
  
   initScene();
- 
+  
   runCuda();
 }

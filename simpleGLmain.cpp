@@ -84,6 +84,7 @@ int main(int argc, char** argv)
    glutKeyboardFunc(keyboard);
    glutMouseFunc(mouse);
    glutMotionFunc(motion);
+   glutPassiveMotionFunc(motion);
 
    // start rendering mainloop
    glutMainLoop();

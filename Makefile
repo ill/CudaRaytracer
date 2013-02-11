@@ -4,12 +4,15 @@ CFLAGS= -O3 -c -lGL -lglut -DGL_GLEXT_PROTOTYPES -lGLU -Iglm-0.9.4.1 -IillEngine
 LDFLAGS= -O3  -lGL -lglut -DGL_GLEXT_PROTOTYPES -lGLU -Iglm-0.9.4.1 -IillEngine -I. 
 CUDAFLAGS= -O3 -c -arch=sm_21 -Iglm-0.9.4.1 -IillEngine -I.
 
-ALL= callbacksPBO.o kernelPBO.o simpleGLmain.o simplePBO.o
+ALL= CameraController.o callbacksPBO.o kernelPBO.o simpleGLmain.o simplePBO.o
 
 all= $(ALL) RTRT
 
 RT:	$(ALL)
 	$(CC) $(LDFLAGS) $(ALL) -o RTRT
+
+CameraController.o:	CameraController.cpp
+	$(CC) $(CFLAGS) -o $@ $<
 
 callbacksPBO.o:	callbacksPBO.cpp
 	$(CC) $(CFLAGS) -o $@ $<
