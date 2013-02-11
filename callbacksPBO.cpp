@@ -38,7 +38,11 @@ extern void moveRight();
 void runCuda();
 
 void display()
-{
+{   
+   cameraController.m_speed = 1.0f;
+   cameraController.m_rollSpeed = 1.0f;
+   cameraController.update(1.0f);   
+   
    illCamera.setPerspectiveTransform(cameraController.m_transform, (float) image_width / (float) image_height, cameraController.m_zoom * 90.0f);
 
    // run CUDA kernel
@@ -83,14 +87,84 @@ void display()
 //! Keyboard events handler for GLUT
 void keyboard(unsigned char key, int x, int y)
 {
+   printf("Key Down %c\n", key);
+
    switch(key) {
+   case 'a':
+      cameraController.m_left = true;
+      break;
+      
+   case 'd':
+      cameraController.m_right = true;
+      break;
+      
+   case 'w':
+      cameraController.m_forward = true;
+      break;
+      
+   case 's':
+      cameraController.m_back = true;
+      break;
+      
+   case ' ':
+      cameraController.m_up = true;
+      break;
+      
+   case 'c':
+      cameraController.m_down = true;
+      break;
+      
+   case 'q':
+      cameraController.m_rollLeft = true;
+      break;
+      
+   case 'e':
+      cameraController.m_rollRight = true;
+      break; 
+   
    case(27) :
       exit(0);
       break;
    }
+}
 
-   // indicate the display must be redrawn
-   glutPostRedisplay();
+void keyboardUp(unsigned char key, int x, int y)
+{
+   printf("Key Up %c\n", key);
+
+   switch(key) {
+   case 'a':
+      cameraController.m_left = false;
+      break;
+      
+   case 'd':
+      cameraController.m_right = false;
+      break;
+      
+   case 'w':
+      cameraController.m_forward = false;
+      break;
+      
+   case 's':
+      cameraController.m_back = false;
+      break;
+      
+   case ' ':
+      cameraController.m_up = false;
+      break;
+      
+   case 'c':
+      cameraController.m_down = false;
+      break;
+      
+   case 'q':
+      cameraController.m_rollLeft = false;
+      break;
+      
+   case 'e':
+      cameraController.m_rollRight = false;
+      break; 
+   }
 }
 
 void mouseLook(int x, int y) {

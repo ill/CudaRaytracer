@@ -16,6 +16,7 @@ extern void renderCuda(int);
 // callbacks
 extern void display();
 extern void keyboard(unsigned char key, int x, int y);
+extern void keyboardUp(unsigned char key, int x, int y);
 extern void mouse(int button, int state, int x, int y);
 extern void motion(int x, int y);
 
@@ -99,7 +100,10 @@ bool initGL(int argc, char **argv)
    glutCreateWindow("Cuda GL Interop Demo (adapted from NVIDIA's simpleGL");
    glutDisplayFunc(fpsDisplay);
    glutKeyboardFunc(keyboard);
+   glutKeyboardUpFunc(keyboardUp);
    glutMotionFunc(motion);
+
+   glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
 
    // Step 3: Setup our viewport and viewing modes
    glViewport(0, 0, window_width, window_height);
